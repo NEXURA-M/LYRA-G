@@ -4,10 +4,11 @@ from transformers import pipeline
 
 app = Flask(__name__)
 
-print("Loading Google Gemma 2B Instruction Model...")
-pipe = pipeline( 
+print("Loading Microsoft Phi-3 Mini Model...")
+# Microsoft Phi-3 mini model load ho raha hai
+pipe = pipeline(
     "text-generation",
-    model="muhammad-taqi512/LYRA-G",
+    model="microsoft/Phi-3-mini-4k-instruct",
     torch_dtype=torch.float32,
     device_map="auto"
 )
@@ -19,16 +20,18 @@ def home():
 
 @app.route("/generate", methods=["POST"])
 def generate():
-    data = request.json
+    data = request.json or {}
     user_prompt = data.get("prompt", "")
 
     if not user_prompt:
         return jsonify({"response": "Please enter a message."}), 400
 
-    # Gemma system role natively support nahi karta, isliye system instructions user prompt me combine kiye gaye hain
-    system_instruction = """You are "Lyramoon", an intelligent AI assistant created by MUHAMMAD TAQI.
+    messages = [
+        {
+            "role": "system",
+            "content": """You are "LYRA-G", an intelligent AI assistant created by MUHAMMAD TAQI.
 When asked about your identity, creator, or links, always maintain this context:
-- Name: Lyramoon
+- Name: LYRA-G
 - Created By: MUHAMMAD TAQI
 - Family AI Link: https://lyra.oneapp.dev/
 - Creator's Official Website: https://nexura.oneapp.dev/
@@ -37,31 +40,29 @@ Rules:
 1. Always be polite, clear, and helpful.
 2. Provide precise, factual, and correct information. Never invent fake facts or hallucinate details.
 3. If you do not know something, state it clearly instead of guessing."""
-
-    full_user_content = f"{system_instruction}\n\nUser Question: {user_prompt}"
-
-    messages = [
-        {"role": "user", "content": full_user_content}
+        },
+        {"role": "user", "content": user_prompt}
     ]
-    
+
     prompt = pipe.tokenizer.apply_chat_template(
         messages, tokenize=False, add_generation_prompt=True
     )
 
     outputs = pipe(
-        prompt, 
-        max_new_tokens=256, 
-        do_sample=True, 
-        temperature=0.7, 
-        top_k=50, 
-        top_p=0.95
+        prompt,
+        max_new_tokens=256,
+        do_sample=True,
+        temperature=0.7,
+        top_k=50,
+        top_p=0.95,
+        eos_token_id=pipe.tokenizer.eos_token_id
     )
-    
+
     generated_text = outputs[0]["generated_text"]
-    
-    # Gemma ke response format ko clean/parse karne ke liye logic
-    if "<start_of_turn>model" in generated_text:
-        response = generated_text.split("<start_of_turn>model")[-1].replace("<end_of_turn>", "").strip()
+
+    # Phi-3 special token parsing (Assistant token ke baad ka response extract karne ke liye)
+    if "<|assistant|>" in generated_text:
+        response = generated_text.split("<|assistant|>")[-1].strip()
     else:
         response = generated_text.strip()
 
