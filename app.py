@@ -8,7 +8,7 @@ print("Loading Microsoft Phi-3 Mini Model...")
 # Microsoft Phi-3 mini model load ho raha hai
 pipe = pipeline(
     "text-generation",
-    model="microsoft/Phi-3-mini-4k-instruct",
+    model="muhammad-taqi512/LYRA-PHI-3",
     torch_dtype=torch.float32,
     device_map="auto"
 )
