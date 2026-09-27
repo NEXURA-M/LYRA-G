@@ -4,8 +4,8 @@ from transformers import pipeline
 
 app = Flask(__name__)
 
-print("Loading Microsoft Phi-3 Mini Model...")
-# Microsoft Phi-3 mini model load ho raha hai
+print("Loading Muhammad Taqi's LYRA-PHI-3 Model...")
+# Aapka apna fine-tuned / customized Phi-3 model load ho raha hai
 pipe = pipeline(
     "text-generation",
     model="muhammad-taqi512/LYRA-PHI-3",
@@ -29,9 +29,9 @@ def generate():
     messages = [
         {
             "role": "system",
-            "content": """You are "LYRA-G", an intelligent AI assistant created by MUHAMMAD TAQI.
+            "content": """You are "LYRA-PHI-3", an intelligent AI assistant created by MUHAMMAD TAQI.
 When asked about your identity, creator, or links, always maintain this context:
-- Name: LYRA-G
+- Name: LYRA-PHI-3
 - Created By: MUHAMMAD TAQI
 - Family AI Link: https://lyra.oneapp.dev/
 - Creator's Official Website: https://nexura.oneapp.dev/
@@ -60,7 +60,7 @@ Rules:
 
     generated_text = outputs[0]["generated_text"]
 
-    # Phi-3 special token parsing (Assistant token ke baad ka response extract karne ke liye)
+    # Special token parsing (Assistant token ke baad ka response extract karne ke liye)
     if "<|assistant|>" in generated_text:
         response = generated_text.split("<|assistant|>")[-1].strip()
     else:
